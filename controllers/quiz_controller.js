@@ -22,9 +22,15 @@ exports.load = function(req, res, next, quizId) {
 
 //GET /quizes
 exports.index = function(req, res) {
-  models.Quiz.findAll().then(function(quizes) {
-    res.render('quizes/index.ejs', {quizes: quizes});  
-  })
+  
+  var cond = {};
+  if (req.query.search) {
+    var busq = req.query.search;
+    busq = busq.replace(/\s+/g, '%');
+    cond = {where: ["pregunta ilike ?",  '%' + busq + '%'], order: [["pregunta", 'ASC']]};
+   };
+   models.Quiz.findAll(cond).then(function(quizes) {
+        res.render('quizes/index.ejs', {quizes: quizes})});
 };
 
 
@@ -36,7 +42,7 @@ exports.show = function(req, res) {
 // GET /quizes/:id/answer
 exports.answer = function(req, res) {
  var resultado = 'Incorrecto';
- if (req.query.respuesta == req.quiz.respuesta) {
+ if (req.query.respuesta && (req.query.respuesta.toLowerCase() == req.quiz.respuesta.toLowerCase())) {
    resultado = 'Correcto';
  }
  res.render('quizes/answer', {quiz: req.quiz, respuesta: resultado});
