@@ -7,10 +7,46 @@ exports.creditos = function(req, res) {
 	 errors: []});
 };
 
+//GET /quizes/statistics
+exports.statistics = function(req, res) {
+ 
+ models.Quiz.findAll({include: [models.Comment]}).then(
+  function(quiz){
+	  if (quiz) {
+		  
+		  //Calculamos estadísticas
+		   var nCom=0;
+		   var mediaCom = 0;
+		   var sinCom=0;
+		   var conCom=0;
+		   var aux = 0;
+		   
+		   for (var i=0; i < quiz.length; i++) {
+		     aux = quiz[i].Comments.length;	
+		     nCom += aux
+		     if (aux > 0) {
+		        conCom++;
+		     }
+		   }
+		   if (quiz.length > 0) { 
+		   	mediaCom = nCom/quiz.length;
+		   }
+   
+   	       sinCom = quiz.length - conCom; 
+		  
+		 	res.render('quizes/statistics.ejs',
+			   {lonQuiz: quiz.length, nCom:nCom, mediaCom:mediaCom, sinCom:sinCom, conCom:conCom, errors: []});
+	  }
+ }); 
+};
+
 
 // Autoload - factoriza el código si ruta incluye :quizId
 exports.load = function(req, res, next, quizId) {
-  models.Quiz.find(quizId).then(
+  models.Quiz.find({
+	  where: {id: Number(quizId)},
+	  include: [{model: models.Comment}]
+	}).then(
   function(quiz){
  	if(quiz) {
  		req.quiz = quiz;
